@@ -1,0 +1,14 @@
+!!!
+%html
+  %head
+    %title Chat
+    %script{:src => "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js",
+      :type => "text/javascript"}
+    %script{:src => "/javascripts/app.js", :type => "text/javascript"}
+    %meta{"http-equiv" =>"Content-Type", :content =>"text/html; charset=utf-8"}
+
+  %body
+    %h1 Chat!
+    #message-box
+      %input#message
+    %ul#message-list
