@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket ...</title>
+    <meta charset='utf-8'>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+    <script>
+      function debug(str)
+      {
+        console.log(str);
+      };
+
+      $(document).ready(function()
+      {
+        if (!("WebSocket" in window))
+        {
+          alert("Sorry, WebSockets unavailable.");
+          return;
+        }
+
+        var ws = new WebSocket("ws://localhost:9000/chat");
+        ws.onmessage = function(evt) {
+          debug(evt);
+          $("#msg").prepend("<p>" + evt.data + "</p>"); 
+        };
+        ws.onclose = function() { debug("socket closed"); };
+        ws.onopen = function() { debug("connected..."); };
+
+        $('#submit').click(function()
+        {
+          var nick = $('#nick').val();
+          var msg = $('#message').val();
+
+          ws.send(nick + ": " + msg);
+          return false;
+        });
+
+      });
+    </script>
+  </head>
+  <body>
+    <form>
+      <label>Nick</label>
+      <input type='text' autofocus='true' id='nick' name='nick' value='anon' size='20' /><br />
+
+      <label>Message</label>
+      <input type='text' autofocus='true' id='message' name='message' value='' size='80' />&nbsp;
+      <input type='submit' id='submit' />
+    </form>
+
+    <div id="debug"></div>
+    <div id="msg"></div>
+  </body>
+</html>

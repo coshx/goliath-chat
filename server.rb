@@ -1,62 +1,12 @@
-require 'goliath'
-require 'tilt'
-require 'json'
-require 'haml'
-require 'pry'
-require 'pry-nav'
+#!/usr/bin/env ruby
+$:<< '../lib' << 'lib'
 
-class Chat
-  attr_accessor :clients
+require 'bundler/setup'
+Bundler.require
 
-  def initialize
-    @clients = []
-    @most_recent_message = ""
-  end
+require 'goliath/websocket'
 
-  def fiber
-    @fiber ||= Fiber.new {
-      loop do
-        response = @most_recent_message
-        @most_recent_message = ""
-        Fiber.yield response
-      end
-    }
-  end
-
-  def send(message)
-     @most_recent_message = message
-  end
-
-end
-
-class ReadMessages < Goliath::API
-  def response(env)
-    $chat.clients << env
-    if !$running
-      fiber = $chat.fiber
-      EM.add_periodic_timer(0.1) do
-        data = fiber.resume
-        # must have two \n at the end
-        if data.length > 0
-          puts "Sending: #{data}"
-          $chat.clients.each do |c|
-            c.stream_send("data: #{data.to_json}\n\n")
-          end
-        end
-      end
-      $running = true
-    end
-		streaming_response(200, {'Content-Type' => 'text/event-stream'})
-  end
-end
-
-class WriteMessage < Goliath::API
-  def response(env)
-    [204, {}, "OK"]
-  end
-end
-
-class Routes < Goliath::API
+class Routes < Goliath::WebSocket
 	# render templated files from ./views
 	include Goliath::Rack::Templates
 
@@ -65,17 +15,31 @@ class Routes < Goliath::API
     Rack::Static,
 		:root => Goliath::Application.app_path('public'),
 		:urls => ['/javascripts'])
-		# :urls => ['/favicon.ico', '/stylesheets', '/javascripts', '/images'])
 
-  post '/chat', WriteMessage do
-    $chat.send(params[:msg])
+  def on_open(env)
+    env.logger.info("CHAT OPEN")
+    env['subscription'] = env.channel.subscribe { |m| env.stream_send(m) }
   end
-	get '/chat', ReadMessages
 
-	def response(env)
-		[200, {}, haml(:index)]
-	end
+  def on_message(env, msg)
+    env.logger.info("CHAT MESSAGE: #{msg}")
+    env.channel << msg
+  end
+
+  def on_close(env)
+    env.logger.info("CHAT CLOSED")
+    env.channel.unsubscribe(env['subscription'])
+  end
+
+  def on_error(env, error)
+    env.logger.error error
+  end
+
+  def response(env)
+    if env['REQUEST_PATH'] == '/chat'
+      super(env)
+    else
+      [200, {}, erb(:index)]
+    end
+  end
 end
-
-$chat = Chat.new
-$running = false
