@@ -1,8 +1,8 @@
 source "http://rubygems.org"
 
-gem "goliath"
+gem "goliath", :git => "git://github.com/postrank-labs/goliath.git"
 gem "haml"
 gem "tilt"
-gem "json_pure"
+gem "coffee-script"
 gem "pry"
 gem "pry-nav"

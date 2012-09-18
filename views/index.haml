@@ -1,0 +1,16 @@
+!!!
+%html
+  %head
+    %title Chat
+    %meta{:charset => "utf-8"}
+    %script{:src => "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+    %script{:src => "/app.js"}
+  %body
+    %form
+      %label Nick
+      %input#nick{:value => "anon"}
+      %br
+      %label Message
+      %input#message{:size => 80}
+      %input#submit{:type => "submit", :value => "Send"}
+    %ul#msg

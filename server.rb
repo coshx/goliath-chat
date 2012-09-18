@@ -1,20 +1,11 @@
-#!/usr/bin/env ruby
-$:<< '../lib' << 'lib'
-
 require 'bundler/setup'
 Bundler.require
 
 require 'goliath/websocket'
 
-class Routes < Goliath::WebSocket
+class Chat < Goliath::WebSocket
 	# render templated files from ./views
 	include Goliath::Rack::Templates
-
-	# render static files from ./public
-	use(
-    Rack::Static,
-		:root => Goliath::Application.app_path('public'),
-		:urls => ['/javascripts'])
 
   def on_open(env)
     env.logger.info("CHAT OPEN")
@@ -38,8 +29,10 @@ class Routes < Goliath::WebSocket
   def response(env)
     if env['REQUEST_PATH'] == '/chat'
       super(env)
+    elsif env['REQUEST_PATH'] == '/app.js'
+      [200, {'Content-Type' => 'application/javascript'}, coffee(:app)]
     else
-      [200, {}, erb(:index)]
+      [200, {}, haml(:index)]
     end
   end
 end
