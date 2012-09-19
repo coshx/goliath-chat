@@ -2,7 +2,7 @@ $(document).ready ->
   unless "WebSocket" of window
     alert "Sorry, WebSockets unavailable."
     return
-  ws = new WebSocket("ws://localhost:9000/chat")
+  ws = new WebSocket("ws://#{window.location.host}/chat")
   ws.onmessage = (evt) ->
     console.log evt
     $("#msg").prepend "<li>#{evt.data}</li>"
